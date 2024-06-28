@@ -1,0 +1,43 @@
+#!/bin/bash
+
+if ! adb devices | grep -q device$; then
+    echo "Oops.. Connect your device and try again."
+    exit 1
+fi
+
+if [ $# -lt 2 ]; then
+        echo "Usage: $0 app_package (e.g: br.com.app) -o destination_to_save_apps"
+    exit 1
+fi
+
+PACKAGE="$1"
+OUTPUT_DIR=""
+
+while [[ $# -gt 0 ]]
+do
+    key="$1"
+
+    case $key in
+        -o)
+        OUTPUT_DIR="$2"
+        shift
+        shift
+        ;;
+        *)
+
+        shift
+        ;;
+    esac
+done
+
+if [ -z "$OUTPUT_DIR" ]; then
+        echo "Method (-o) missing argument."
+    exit 1
+fi
+
+for APK_PATH in $(adb shell pm path $PACKAGE | cut -d: -f2)
+do
+    APK_FILE=$(basename $APK_PATH)
+
+    adb pull "$APK_PATH" "$OUTPUT_DIR/$APK_FILE"
+done
